@@ -1,839 +1,726 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Focus Space 3D - Ultimate Study</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tết 2026 | Hồn Xưa Trong Nhịp Sống Mới</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Great+Vibes&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --text-color: white;
-            --ui-bg: rgba(15, 23, 42, 0.6);
-            --note-yellow: #fdfd96;
-            --note-blue: #aec6cf;
-            --note-pink: #ffb7b2;
-            --note-purple: #c7ceea;
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --rain-opacity: 0;
+    <style type="text/tailwindcss">
+        @theme {
+            --color-tet-red: #9B1C1C;
+            --color-tet-gold: #D4A017;
+            --color-tet-wood: #4E342E;
+            --color-tet-green: #2F4F4F;
+            --color-paper: #F5F0E6;
+            --font-display: 'Playfair Display', serif;
+            --font-body: 'Merriweather', serif;
+            --font-calligraphy: 'Great Vibes', cursive;
+            --font-modern: 'Be Vietnam Pro', sans-serif;
         }
-
-        /* --- THEMES --- */
-        body.theme-light {
-            --bg-color: #f0f9ff;
-            --text-color: #1e293b;
-            --ui-bg: rgba(255, 255, 255, 0.6);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
-        body.theme-light .note { box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        body.theme-light #app-title h1 { text-shadow: none; color: #0f172a; }
-        body.theme-light #app-title p { color: #64748b; }
-        body.theme-light .ui-btn { color: #334155; background: rgba(0,0,0,0.05); }
-        body.theme-light .ui-btn:hover { background: rgba(0,0,0,0.1); }
-        body.theme-light #viewport { filter: brightness(1.1); }
-
-        body.theme-sad {
-            --bg-color: #050505;
-            --rain-opacity: 1;
-        }
-        body.theme-sad #viewport { filter: grayscale(1) contrast(1.2) brightness(0.7); }
-        body.theme-sad #bg-canvas { opacity: 0.3; }
 
         body {
-            margin: 0;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color);
-            user-select: none;
-            -webkit-font-smoothing: antialiased;
-            transition: background-color 1s ease, color 0.5s ease;
+            background-color: var(--color-paper);
+            color: var(--color-tet-wood);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%239B1C1C" stroke-width="2"><circle cx="12" cy="12" r="4" fill="%239B1C1C"/></svg>') 12 12, auto;
         }
 
-        /* --- RAIN EFFECT --- */
-        #rain-container {
-            position: fixed; inset: 0; pointer-events: none; z-index: 5;
-            opacity: var(--rain-opacity); transition: opacity 2s;
-            background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.2));
-        }
-        .rain-drop {
-            position: absolute; background: rgba(255,255,255,0.2);
-            width: 1px; height: 40px; top: -50px;
-            animation: fall linear infinite;
-        }
-        @keyframes fall {
-            to { transform: translateY(110vh); }
-        }
-
-        /* --- 3D SCENE --- */
-        #viewport {
-            position: absolute;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            perspective: 1200px; /* Deep perspective */
-            overflow: hidden;
-            z-index: 10;
+        /* --- Textures & Effects --- */
+        .texture-paper {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
             pointer-events: none;
+            z-index: 5;
+            mix-blend-mode: multiply;
         }
 
-        #world {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 0; height: 0;
-            transform-style: preserve-3d;
-            pointer-events: auto;
-            will-change: transform;
+        .ink-brush {
+            background: linear-gradient(to right, #9B1C1C, #D4A017);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        /* --- STICKY NOTE --- */
-        .note {
-            position: absolute;
-            width: 240px; height: 240px;
-            background: var(--note-yellow);
-            color: #333;
-            padding: 20px;
-            box-sizing: border-box;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.4rem;
-            line-height: 1.4;
-            border-radius: 2px 2px 25px 2px; /* Paper fold effect */
-            
-            /* Hardware Acceleration */
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-            will-change: transform, opacity;
-            
-            /* Visuals */
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            transition: opacity 0.4s ease, box-shadow 0.3s ease, filter 0.4s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            
+        /* --- Animations --- */
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+        }
+        
+        @keyframes sway {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .lantern-anim { animation: sway 6s ease-in-out infinite; transform-origin: top center; }
+        .candle-anim { animation: flicker 3s infinite; }
+
+        /* --- Components --- */
+        .red-paper-card {
+            background-color: #C62828;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
+            box-shadow: 0 10px 25px -5px rgba(155, 28, 28, 0.4);
+            border: 1px solid #D4A017;
+            transition: all 0.5s ease;
+        }
+        .red-paper-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -10px rgba(155, 28, 28, 0.6);
+        }
+
+        .roof-tile {
+            background: #9B1C1C;
+            clip-path: polygon(0% 100%, 10% 85%, 25% 95%, 40% 80%, 55% 90%, 70% 75%, 85% 85%, 100% 70%, 100% 100%);
+        }
+
+        /* --- Scroll Snap Section --- */
+        .story-section {
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            cursor: grab;
-            
-            /* Float Animation via CSS for performance */
-            animation: floatNode 6s ease-in-out infinite;
-            animation-delay: calc(var(--delay) * -1s);
+            align-items: center;
+            justify-content: center;
+            transition: background-color 1s ease;
         }
-
-        @keyframes floatNode {
-            0%, 100% { margin-top: 0px; }
-            50% { margin-top: -15px; }
-        }
-
-        /* Note States */
-        .note.active-drag {
-            cursor: grabbing;
-            z-index: 10000 !important;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            transition: none !important; /* Instant follow */
-            animation: none;
-        }
-
-        .note.pinned {
-            animation: none;
-            border-top: 4px solid rgba(0,0,0,0.2);
-        }
-
-        .note.important {
-            box-shadow: 0 0 40px var(--glow-color, rgba(255,255,100,0.6));
-            z-index: 5000;
-            border: 2px solid white;
-        }
-
-        .note.focused {
-            z-index: 9999 !important;
-            transform: translate3d(0, 0, 400px) rotateX(0) rotateY(0) rotateZ(0) !important;
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
-            pointer-events: auto !important;
-        }
-
-        .note.blurred {
-            opacity: 0.2;
-            filter: blur(4px);
-            pointer-events: none;
-        }
-
-        .note:hover {
-            z-index: 1000;
-        }
-
-        .note textarea {
-            width: 100%; height: 100%;
-            background: transparent; border: none;
-            resize: none; outline: none;
-            font-family: inherit; font-size: inherit; color: inherit;
-            cursor: text;
-        }
-
-        /* --- CONTROLS ON NOTE --- */
-        .note-controls {
-            position: absolute; top: -15px; right: -10px;
-            display: flex; gap: 4px;
-            opacity: 0; transition: opacity 0.2s;
-            transform: translateZ(20px); /* Floating above note */
-        }
-        .note:hover .note-controls, .note.focused .note-controls { opacity: 1; }
-
-        .n-btn {
-            width: 28px; height: 28px;
-            background: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-            color: #444;
-        }
-        .n-btn:hover { transform: scale(1.1); }
-        .n-btn.delete:hover { background: #fee2e2; color: #ef4444; }
-        .n-btn.focus:hover { background: #e0f2fe; color: #0ea5e9; }
-        .n-btn.star.active { color: #eab308; background: #fef9c3; }
-
-        /* --- TIMER 3D --- */
-        #timer-card {
-            background: #1e293b;
-            color: white;
-            font-family: 'JetBrains Mono', monospace;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: none; /* Hidden by default */
-            align-items: center; justify-content: center;
-            flex-direction: column;
-        }
-        #timer-display { font-size: 3rem; font-weight: 700; letter-spacing: 2px; }
-
-        /* --- UI OVERLAY --- */
-        #ui-layer {
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%);
-            display: flex; gap: 12px;
-            z-index: 100;
-            padding: 10px 20px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: opacity 0.5s;
-        }
-
-        .ui-btn {
-            width: 44px; height: 44px;
-            border-radius: 12px;
-            border: none;
-            background: rgba(255,255,255,0.1);
-            color: white; font-size: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
-            position: relative;
-        }
-        .ui-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
-        .ui-btn:active { transform: scale(0.95); }
-        
-        .ui-tooltip {
-            position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 4px 8px;
-            border-radius: 4px; font-size: 12px; opacity: 0; pointer-events: none;
-            transition: opacity 0.2s; white-space: nowrap;
-        }
-        .ui-btn:hover .ui-tooltip { opacity: 1; }
-
-        /* --- PROMISE CARD --- */
-        #promise-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 200;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.5s;
-        }
-        #promise-overlay.active { opacity: 1; pointer-events: auto; }
-        
-        /* Low End Mode Optimizations */
-        body.low-end .note {
-            box-shadow: none !important; /* Remove shadows */
-            transition: transform 0.1s !important; /* Faster transition */
-            animation: none !important; /* No floating */
-        }
-        body.low-end #bg-canvas {
-            display: none; /* Disable WebGL stars */
-        }
-        
-        /* Zen Mode */
-        body.zen #ui-layer { opacity: 0; pointer-events: none; }
-        body.zen #app-title { opacity: 0.1; }
-
     </style>
 </head>
-<body>
+<body class="antialiased selection:bg-tet-red selection:text-white relative">
 
-    <!-- WebGL Background -->
-    <canvas id="bg-canvas"></canvas>
+    <!-- Texture Overlay -->
+    <div class="texture-paper"></div>
 
-    <!-- 3D World -->
-    <div id="viewport">
-        <div id="world">
-            <!-- Notes injected here -->
-            
-            <!-- 3D Timer Object -->
-            <div id="timer-card" class="note" style="background: #1e293b; width: 300px; height: 160px; z-index: 100;">
-                <h3 class="text-gray-400 text-sm mb-2 uppercase tracking-widest">Focus Timer</h3>
-                <div id="timer-display">25:00</div>
-                <div class="flex gap-4 mt-4">
-                    <button id="timer-start" class="px-4 py-1 bg-emerald-600 rounded hover:bg-emerald-500 text-sm font-sans">Start</button>
-                    <button id="timer-reset" class="px-4 py-1 bg-slate-600 rounded hover:bg-slate-500 text-sm font-sans">Reset</button>
+    <!-- Background Canvas (Lanterns) -->
+    <canvas id="lantern-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-40 px-8 py-6 flex justify-between items-center mix-blend-multiply">
+        <div class="font-calligraphy text-3xl text-tet-red font-bold">Xuân 2026</div>
+        <button id="music-btn" class="text-tet-wood hover:text-tet-red transition duration-300 flex items-center gap-2 text-sm uppercase tracking-widest font-modern">
+            <span>Âm Nhạc</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/></svg>
+        </button>
+    </nav>
+
+    <!-- HERO SECTION: Living Painting -->
+    <header class="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#FDFBF7] to-[#EAD8B1]">
+        
+        <!-- Elements: Sun/Moon -->
+        <div class="absolute top-20 right-20 w-32 h-32 rounded-full bg-[#D4A017]/20 blur-xl"></div>
+        <div class="absolute top-24 right-24 w-24 h-24 rounded-full bg-[#9B1C1C] opacity-80 mix-blend-multiply"></div>
+
+        <!-- Elements: Branch -->
+        <div class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 opacity-80">
+            <!-- Simple SVG Branch -->
+            <svg class="absolute top-0 left-0 w-96 h-96 text-tet-wood" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M0,0 Q30,50 80,40" stroke-width="1.5" />
+                <path d="M30,25 Q50,40 60,70" stroke-width="1" />
+                <!-- Flowers -->
+                <circle cx="80" cy="40" r="1.5" fill="#9B1C1C" stroke="none" />
+                <circle cx="60" cy="70" r="1.5" fill="#9B1C1C" stroke="none" />
+                <circle cx="35" cy="35" r="1" fill="#9B1C1C" stroke="none" />
+            </svg>
+        </div>
+
+        <!-- Main Text -->
+        <div class="relative z-20 text-center px-4 max-w-3xl">
+            <p class="font-modern text-tet-green text-sm uppercase tracking-[0.3em] mb-4">Gìn giữ nét xưa • Đón điều lành mới</p>
+            <h1 class="font-display text-6xl md:text-8xl lg:text-9xl text-tet-red mb-6 leading-tight">
+                Xuân <span class="font-calligraphy text-tet-gold">An Khang</span>
+            </h1>
+            <div class="w-24 h-1 bg-tet-wood mx-auto mb-8 rounded-full opacity-20"></div>
+            <p class="font-body text-tet-wood/80 text-lg md:text-xl italic">
+                "Thịt mỡ dưa hành câu đối đỏ<br>
+                Cây nêu tràng pháo bánh chưng xanh"
+            </p>
+        </div>
+
+        <!-- CSS Art: Roof (Mái Đình) at bottom -->
+        <div class="absolute bottom-0 left-0 w-full h-48 z-10 pointer-events-none flex items-end justify-center">
+            <div class="w-[120%] h-32 bg-[#4E342E] rounded-[50%] translate-y-20 flex items-center justify-center relative shadow-2xl">
+                <!-- Roof Tiles Pattern -->
+                <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(#2F4F4F 1px, transparent 1px); background-size: 20px 20px;"></div>
+            </div>
+        </div>
+
+        <!-- Hanging Lantern -->
+        <div class="absolute top-0 left-20 md:left-40 z-20 lantern-anim origin-top">
+            <div class="w-0.5 h-32 bg-tet-wood mx-auto"></div>
+            <div class="w-16 h-20 bg-tet-red rounded-lg relative flex items-center justify-center shadow-lg border-t-4 border-b-4 border-tet-gold">
+                <div class="w-8 h-8 bg-yellow-400 rounded-full blur-md opacity-50 candle-anim"></div>
+                <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 w-4 h-6 bg-tet-gold/50 rounded-full blur-sm"></div>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-1">
+                    <div class="w-0.5 h-8 bg-red-800"></div>
+                    <div class="w-0.5 h-8 bg-red-800"></div>
+                    <div class="w-0.5 h-8 bg-red-800"></div>
                 </div>
             </div>
         </div>
-    </div>
+        
+        <div class="absolute bottom-10 animate-bounce opacity-50 z-20">
+            <span class="text-xs font-modern uppercase tracking-widest text-tet-wood">Cuộn để du xuân</span>
+        </div>
+    </header>
 
-    <!-- UI Controls -->
-    <div id="ui-layer">
-        <button class="ui-btn" id="btn-add" style="background: rgba(255,255,255,0.2)">
-            📝<span class="ui-tooltip">Thêm Note</span>
-        </button>
-        <div class="w-[1px] h-8 bg-white/10 mx-1"></div>
-        <button class="ui-btn" id="btn-group">
-            🧩<span class="ui-tooltip">Xếp theo môn</span>
-        </button>
-        <button class="ui-btn" id="btn-timer">
-            ⏳<span class="ui-tooltip">Bật Timer</span>
-        </button>
-        <button class="ui-btn" id="btn-focus">
-            🎯<span class="ui-tooltip">Reset Camera</span>
-        </button>
-        <div class="w-[1px] h-8 bg-white/10 mx-1"></div>
-        <button class="ui-btn" id="btn-music">
-            🎧<span class="ui-tooltip">Bật/Tắt Nhạc</span>
-        </button>
-        <button class="ui-btn" id="btn-upload" onclick="document.getElementById('audio-input').click()">
-            📂<span class="ui-tooltip">File Nhạc Của Bạn</span>
-        </button>
-        <div class="w-[1px] h-8 bg-white/10 mx-1"></div>
-        <button class="ui-btn" id="btn-theme-light">
-            ☀️<span class="ui-tooltip">Sáng</span>
-        </button>
-        <button class="ui-btn" id="btn-theme-sad">
-            💔<span class="ui-tooltip">Thất Tình</span>
-        </button>
-        <button class="ui-btn" id="btn-lowend">
-            ⚡<span class="ui-tooltip">Máy Yếu</span>
-        </button>
-        <button class="ui-btn" id="btn-zen">
-            🍃<span class="ui-tooltip">Zen</span>
-        </button>
-    </div>
-
-    <!-- Hidden Inputs/Containers -->
-    <input type="file" id="audio-input" accept="audio/*" style="display: none;">
-    <div id="rain-container"></div>
-
-    <!-- App Title -->
-    <div id="app-title" class="fixed top-6 left-8 z-50 pointer-events-none transition-opacity duration-500">
-        <h1 class="text-3xl font-bold text-white tracking-widest font-sans drop-shadow-lg">FOCUS SPACE</h1>
-        <p class="text-sm text-blue-200">Góc ôn thi 3D</p>
-    </div>
-
-    <!-- Promise Overlay -->
-    <div id="promise-overlay">
-        <div class="bg-white rounded-lg p-8 w-[500px] text-center shadow-2xl transform scale-100">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4 font-sans">✨ Lời Hứa Mùa Thi ✨</h2>
-            <textarea id="promise-text" class="w-full h-32 p-4 bg-slate-50 rounded border border-slate-200 resize-none mb-4 font-hand text-xl" placeholder="Thi xong tui sẽ..."></textarea>
-            <div class="flex justify-center gap-4">
-                <button id="btn-save-promise" class="px-6 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700">Quyết tâm!</button>
-                <button id="btn-close-promise" class="px-6 py-2 text-slate-500 hover:text-slate-700">Để sau</button>
+    <!-- SECTION 2: Countdown & Story -->
+    <section class="story-section relative bg-[#EAD8B1] py-24 px-4" id="countdown-section">
+        <div class="max-w-4xl mx-auto text-center z-10">
+            <h2 class="font-calligraphy text-5xl text-tet-red mb-12">Thời Khắc Giao Thừa</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+                <!-- Classic Clock/Calendar Style -->
+                <div class="flex flex-col items-center">
+                    <span id="days" class="font-display text-6xl text-tet-wood border-b-2 border-tet-red/30 pb-2 w-24">00</span>
+                    <span class="font-modern text-xs uppercase mt-2 tracking-widest text-tet-green">Ngày</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span id="hours" class="font-display text-6xl text-tet-wood border-b-2 border-tet-red/30 pb-2 w-24">00</span>
+                    <span class="font-modern text-xs uppercase mt-2 tracking-widest text-tet-green">Giờ</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span id="minutes" class="font-display text-6xl text-tet-wood border-b-2 border-tet-red/30 pb-2 w-24">00</span>
+                    <span class="font-modern text-xs uppercase mt-2 tracking-widest text-tet-green">Phút</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span id="seconds" class="font-display text-6xl text-tet-red border-b-2 border-tet-gold pb-2 w-24">00</span>
+                    <span class="font-modern text-xs uppercase mt-2 tracking-widest text-tet-green">Giây</span>
+                </div>
             </div>
+
+            <p class="font-body italic text-tet-wood/70 max-w-2xl mx-auto leading-loose">
+                "Đêm 30, hương trầm thơm bảng lảng.<br>
+                Cả gia đình quây quần bên nồi bánh chưng xanh.<br>
+                Tiếng củi lửa tí tách, kể chuyện năm cũ, đón chờ năm mới."
+            </p>
+        </div>
+    </section>
+
+    <!-- SECTION 3: Xin Chữ (Calligraphy Game) -->
+    <section class="story-section bg-[#F5F0E6] py-24 px-4 relative">
+        <div class="max-w-5xl mx-auto text-center z-10">
+            <h2 class="font-display text-4xl text-tet-wood mb-4">Xin Chữ Đầu Xuân</h2>
+            <p class="font-modern text-sm text-gray-500 mb-12">Chọn một phong bao đỏ để nhận chữ thánh hiền</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                <!-- Card 1 -->
+                <div class="xin-chu-card group cursor-pointer perspective-1000" data-char="Phúc" data-mean="Hạnh phúc, may mắn, tốt lành">
+                    <div class="red-paper-card aspect-[2/3] flex items-center justify-center rounded-sm relative overflow-hidden">
+                        <div class="absolute inset-2 border border-tet-gold opacity-50"></div>
+                        <span class="font-display text-tet-gold text-5xl opacity-30 group-hover:opacity-100 transition-opacity">?</span>
+                        <!-- Hidden Content -->
+                        <div class="revealed-content absolute inset-0 bg-paper flex flex-col items-center justify-center opacity-0 transition-opacity duration-700 bg-[#F5F0E6]">
+                            <span class="font-calligraphy text-6xl text-tet-red mb-2 char-anim">Phúc</span>
+                            <span class="font-modern text-[10px] uppercase tracking-widest text-tet-wood">Hạnh Phúc</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="xin-chu-card group cursor-pointer perspective-1000" data-char="Lộc" data-mean="Tài lộc, thịnh vượng">
+                    <div class="red-paper-card aspect-[2/3] flex items-center justify-center rounded-sm relative overflow-hidden">
+                        <div class="absolute inset-2 border border-tet-gold opacity-50"></div>
+                        <span class="font-display text-tet-gold text-5xl opacity-30 group-hover:opacity-100 transition-opacity">?</span>
+                         <div class="revealed-content absolute inset-0 bg-paper flex flex-col items-center justify-center opacity-0 transition-opacity duration-700 bg-[#F5F0E6]">
+                            <span class="font-calligraphy text-6xl text-tet-red mb-2 char-anim">Lộc</span>
+                            <span class="font-modern text-[10px] uppercase tracking-widest text-tet-wood">Thịnh Vượng</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="xin-chu-card group cursor-pointer perspective-1000" data-char="Thọ" data-mean="Sống lâu, khỏe mạnh">
+                    <div class="red-paper-card aspect-[2/3] flex items-center justify-center rounded-sm relative overflow-hidden">
+                        <div class="absolute inset-2 border border-tet-gold opacity-50"></div>
+                        <span class="font-display text-tet-gold text-5xl opacity-30 group-hover:opacity-100 transition-opacity">?</span>
+                         <div class="revealed-content absolute inset-0 bg-paper flex flex-col items-center justify-center opacity-0 transition-opacity duration-700 bg-[#F5F0E6]">
+                            <span class="font-calligraphy text-6xl text-tet-red mb-2 char-anim">Thọ</span>
+                            <span class="font-modern text-[10px] uppercase tracking-widest text-tet-wood">Trường Thọ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="xin-chu-card group cursor-pointer perspective-1000" data-char="An" data-mean="Bình an, yên ổn">
+                    <div class="red-paper-card aspect-[2/3] flex items-center justify-center rounded-sm relative overflow-hidden">
+                        <div class="absolute inset-2 border border-tet-gold opacity-50"></div>
+                        <span class="font-display text-tet-gold text-5xl opacity-30 group-hover:opacity-100 transition-opacity">?</span>
+                         <div class="revealed-content absolute inset-0 bg-paper flex flex-col items-center justify-center opacity-0 transition-opacity duration-700 bg-[#F5F0E6]">
+                            <span class="font-calligraphy text-6xl text-tet-red mb-2 char-anim">An</span>
+                            <span class="font-modern text-[10px] uppercase tracking-widest text-tet-wood">Bình An</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="xin-chu-card group cursor-pointer perspective-1000" data-char="Tâm" data-mean="Tâm sáng, đức độ">
+                    <div class="red-paper-card aspect-[2/3] flex items-center justify-center rounded-sm relative overflow-hidden">
+                        <div class="absolute inset-2 border border-tet-gold opacity-50"></div>
+                        <span class="font-display text-tet-gold text-5xl opacity-30 group-hover:opacity-100 transition-opacity">?</span>
+                         <div class="revealed-content absolute inset-0 bg-paper flex flex-col items-center justify-center opacity-0 transition-opacity duration-700 bg-[#F5F0E6]">
+                            <span class="font-calligraphy text-6xl text-tet-red mb-2 char-anim">Tâm</span>
+                            <span class="font-modern text-[10px] uppercase tracking-widest text-tet-wood">An Yên</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="meaning-box" class="mt-12 h-16 font-body text-tet-red italic text-lg opacity-0 transition-opacity">
+                <!-- Meaning text appears here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: Thả Đèn (Lantern Wishes) -->
+    <section class="story-section bg-[#1a1110] relative overflow-hidden py-24 px-4 text-white" id="lantern-section">
+        <!-- Overlay Gradient -->
+        <div class="absolute inset-0 bg-gradient-to-t from-[#000000] via-transparent to-transparent opacity-80"></div>
+
+        <div class="relative z-10 max-w-xl mx-auto text-center">
+            <h2 class="font-calligraphy text-5xl text-tet-gold mb-6 text-shadow-glow">Thả Đèn Ước Nguyện</h2>
+            <p class="font-body text-gray-300 mb-10 text-sm">Gửi gắm ước mơ vào ngọn đèn trời, để gió mang đi xa, bay cao mãi.</p>
+
+            <div class="glass-effect p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm">
+                <input type="text" id="wish-input" placeholder="Nhập điều ước của bạn..." class="w-full bg-transparent border-b border-white/30 p-3 text-center text-xl font-display text-white placeholder-white/30 focus:outline-none focus:border-tet-gold transition-colors mb-8">
+                
+                <button id="release-btn" class="px-8 py-3 bg-tet-red hover:bg-red-700 text-white font-modern uppercase tracking-widest text-xs rounded transition-all duration-500 shadow-[0_0_20px_rgba(155,28,28,0.5)]">
+                    Thả Đèn
+                </button>
+            </div>
+            
+            <div class="mt-12 opacity-60">
+                <p class="font-calligraphy text-2xl text-tet-gold">"Vạn sự như ý - Tỷ sự như mơ"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#1a1110] text-[#8d7f7e] py-12 text-center border-t border-[#332220] relative z-20">
+        <p class="font-display text-xl mb-2 text-[#b09e9d]">Tết 2026</p>
+        <p class="font-modern text-xs tracking-widest uppercase opacity-50">Giữ gìn bản sắc văn hóa Việt</p>
+    </footer>
+
+    <!-- MASCOT & WISH GENERATOR -->
+    <div class="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-4 pointer-events-none md:bottom-8 md:right-8">
+        
+        <!-- Chat Bubble (Rice Paper Style) -->
+        <div id="mascot-bubble" class="pointer-events-auto relative bg-[#F5F0E6] text-tet-wood border border-[#D4A017] p-6 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl shadow-2xl max-w-xs md:max-w-sm origin-bottom-right transition-all duration-500 opacity-0 transform scale-90 translate-y-4" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.1\'/%3E%3C/svg%3E');">
+            <!-- Close Button -->
+            <button id="close-bubble" class="absolute top-2 right-2 text-tet-wood/50 hover:text-tet-red">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <!-- Content Area -->
+            <div id="bubble-content" class="min-h-[60px] flex items-center">
+                <p id="wish-text" class="font-body text-sm leading-relaxed italic text-tet-wood"></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="bubble-actions" class="mt-4 flex gap-2 justify-end opacity-0 transition-opacity duration-500 delay-300">
+                <button data-type="general" class="wish-btn px-3 py-1 bg-tet-red/10 hover:bg-tet-red hover:text-white border border-tet-red/30 rounded text-xs font-modern uppercase tracking-wider transition-colors">Chúc Tết</button>
+                <button data-type="solo" class="wish-btn px-3 py-1 bg-tet-green/10 hover:bg-tet-green hover:text-white border border-tet-green/30 rounded text-xs font-modern uppercase tracking-wider transition-colors">Một Mình</button>
+            </div>
+
+            <!-- Tail -->
+            <div class="absolute -bottom-2 right-6 w-4 h-4 bg-[#F5F0E6] border-b border-r border-[#D4A017] transform rotate-45"></div>
+        </div>
+
+        <!-- Mascot Avatar (Interactive) -->
+        <div id="mascot-avatar" class="pointer-events-auto w-20 h-20 md:w-24 md:h-24 cursor-pointer hover:-translate-y-1 transition-transform duration-300 drop-shadow-xl group relative">
+            <!-- Tooltip hint -->
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 px-2 py-1 rounded text-[10px] uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-tet-wood shadow-sm">
+                Nhận lời chúc
+            </div>
+            
+            <!-- Simple CSS/SVG Mascot: Little Boy in Ao Dai -->
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                <!-- Head -->
+                <circle cx="50" cy="35" r="20" fill="#FFE0B2" />
+                <!-- Hair -->
+                <path d="M30 30C30 20 40 10 50 10C60 10 70 20 70 30V35H30V30Z" fill="#1a1110"/>
+                <!-- Khan Dong (Headwear) -->
+                <rect x="28" y="20" width="44" height="12" rx="4" fill="#9B1C1C" />
+                <rect x="40" y="20" width="20" height="12" fill="#C62828" />
+                <circle cx="50" cy="26" r="3" fill="#D4A017" />
+                
+                <!-- Body (Ao Dai) -->
+                <path d="M25 55C25 50 35 45 50 45C65 45 75 50 75 55V95H25V55Z" fill="#9B1C1C"/>
+                <!-- Arms -->
+                <ellipse cx="20" cy="65" rx="8" ry="15" fill="#C62828" transform="rotate(-20 20 65)"/>
+                <ellipse cx="80" cy="65" rx="8" ry="15" fill="#C62828" transform="rotate(20 80 65)"/>
+                <!-- Hands -->
+                <circle cx="20" cy="80" r="5" fill="#FFE0B2"/>
+                <circle cx="80" cy="80" r="5" fill="#FFE0B2"/>
+                
+                <!-- Face Details -->
+                <circle cx="43" cy="35" r="2" fill="#1a1110"/>
+                <circle cx="57" cy="35" r="2" fill="#1a1110"/>
+                <path d="M48 40Q50 42 52 40" stroke="#1a1110" stroke-width="1" stroke-linecap="round"/>
+                <circle cx="40" cy="38" r="2" fill="#FF8A80" opacity="0.5"/>
+                <circle cx="60" cy="38" r="2" fill="#FF8A80" opacity="0.5"/>
+            </svg>
         </div>
     </div>
 
-    <!-- Audio -->
-    <audio id="bg-audio" loop preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/08/02/audio_884fe92c21.mp3?filename=relaxing-music-vol1-124477.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
-        /**
-         * SENIOR DEV ARCHITECTURE
-         * 1. State Management: Centralized store for notes and settings.
-         * 2. Loop Optimization: Single requestAnimationFrame.
-         * 3. Performance: CSS transforms for heavy lifting, JS for logic.
-         */
-
-        const CONFIG = {
-            colors: ['bg-yellow', 'bg-blue', 'bg-pink', 'bg-purple'], // Tailwind classes handled in CSS var
-            colorMap: {
-                'bg-yellow': '#fdfd96',
-                'bg-blue': '#aec6cf',
-                'bg-pink': '#ffb7b2',
-                'bg-purple': '#c7ceea'
-            },
-            maxPixelRatio: Math.min(window.devicePixelRatio, 2),
-            rotationSpeed: 0.05
-        };
-
-        const STATE = {
-            notes: [],
-            mode: 'orbit', // orbit, drag, focus
-            isLowEnd: false,
-            isZen: false,
-            focusedNoteId: null,
-            mouse: { x: 0, y: 0 },
-            targetRot: { x: 0, y: 0 },
-            currRot: { x: 0, y: 0 },
-            drag: { active: false, id: null, offset: {x:0, y:0}, startPos: {x:0, y:0} },
-            timer: { active: false, time: 25 * 60, interval: null }
-        };
-
-        const DOM = {
-            world: document.getElementById('world'),
-            ui: document.getElementById('ui-layer'),
-            audio: document.getElementById('bg-audio'),
-            timerCard: document.getElementById('timer-card'),
-            timerDisplay: document.getElementById('timer-display')
-        };
-
-        // --- 1. CORE RENDER LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Smooth Rotation (Lerp)
-            // Only rotate if not dragging and not focused
-            if (!STATE.drag.active && STATE.mode === 'orbit') {
-                STATE.currRot.x += (STATE.mouse.y * 5 - STATE.currRot.x) * CONFIG.rotationSpeed;
-                STATE.currRot.y += (STATE.mouse.x * 5 - STATE.currRot.y) * CONFIG.rotationSpeed;
-            } else if (STATE.mode === 'focus') {
-                // Return to center when focused
-                STATE.currRot.x += (0 - STATE.currRot.x) * 0.1;
-                STATE.currRot.y += (0 - STATE.currRot.y) * 0.1;
-            }
-
-            DOM.world.style.transform = `rotateX(${STATE.currRot.x.toFixed(2)}deg) rotateY(${STATE.currRot.y.toFixed(2)}deg)`;
+        document.addEventListener('DOMContentLoaded', () => {
             
-            // Render Stars if not low-end
-            if (!STATE.isLowEnd && ThreeApp.renderer) {
-                ThreeApp.render();
-            }
-        }
+            // --- 1. COUNTDOWN ENGINE ---
+            const targetDate = new Date("January 1, 2026 00:00:00").getTime();
+            // const targetDate = new Date().getTime() + 5000; // Test mode
 
-        // --- 2. NOTE MANAGER ---
-        const NoteManager = {
-            init() {
-                const saved = localStorage.getItem('fs-notes');
-                if (saved) {
-                    STATE.notes = JSON.parse(saved);
-                    STATE.notes.forEach(n => this.render(n));
-                } else {
-                    // Welcome notes
-                    this.add("Chào bạn! 👋\nĐây là không gian tập trung.", {x: -200, y: -100, z: 0, color: 'bg-yellow'});
-                    this.add("Bấm 🎯 để focus.\nBấm ⭐ để đánh dấu.", {x: 200, y: 50, z: -100, color: 'bg-blue'});
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    document.getElementById("days").innerText = "00";
+                    document.getElementById("hours").innerText = "00";
+                    document.getElementById("minutes").innerText = "00";
+                    document.getElementById("seconds").innerText = "00";
+                    return;
                 }
-            },
 
-            add(content = '', pos = null) {
-                const note = {
-                    id: Date.now(),
-                    content,
-                    color: CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)],
-                    x: pos ? pos.x : (Math.random() - 0.5) * 800,
-                    y: pos ? pos.y : (Math.random() - 0.5) * 400,
-                    z: pos ? pos.z : (Math.random() * -600),
-                    pinned: false,
-                    important: false
-                };
-                if(pos && pos.color) note.color = pos.color;
+                const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((distance % (1000 * 60)) / 1000);
 
-                STATE.notes.push(note);
-                this.render(note);
-                this.save();
-            },
+                document.getElementById("days").innerText = d < 10 ? "0"+d : d;
+                document.getElementById("hours").innerText = h < 10 ? "0"+h : h;
+                document.getElementById("minutes").innerText = m < 10 ? "0"+m : m;
+                document.getElementById("seconds").innerText = s < 10 ? "0"+s : s;
+            };
+            setInterval(updateTimer, 1000);
+            updateTimer();
 
-            render(data) {
-                const el = document.createElement('div');
-                el.className = `note ${data.pinned ? 'pinned' : ''} ${data.important ? 'important' : ''}`;
-                el.id = `n-${data.id}`;
-                el.dataset.id = data.id;
-                el.style.setProperty('--delay', Math.random() * 5); // Random float delay
-                el.style.setProperty('--bg-color', CONFIG.colorMap[data.color]);
-                el.style.backgroundColor = CONFIG.colorMap[data.color];
-                if(data.important) el.style.setProperty('--glow-color', CONFIG.colorMap[data.color]);
+            // --- 2. XIN CHỮ GAME ---
+            const cards = document.querySelectorAll('.xin-chu-card');
+            const meaningBox = document.getElementById('meaning-box');
 
-                el.style.transform = `translate3d(${data.x}px, ${data.y}px, ${data.z}px)`;
-
-                el.innerHTML = `
-                    <div class="note-controls">
-                        <div class="n-btn focus" title="Focus">🎯</div>
-                        <div class="n-btn star ${data.important ? 'active' : ''}" title="Quan trọng">⭐</div>
-                        <div class="n-btn delete" title="Xóa">×</div>
-                    </div>
-                    <div class="pin-icon absolute -top-3 left-1/2 -translate-x-1/2 text-2xl ${data.pinned ? '' : 'hidden'}">📌</div>
-                    <textarea spellcheck="false" placeholder="Viết gì đó...">${data.content}</textarea>
-                `;
-
-                DOM.world.appendChild(el);
-            },
-
-            update(id, updates) {
-                const note = STATE.notes.find(n => n.id === id);
-                if (!note) return;
-                Object.assign(note, updates);
-                
-                const el = document.getElementById(`n-${id}`);
-                if (el) {
-                    if (updates.hasOwnProperty('x')) {
-                        el.style.transform = `translate3d(${note.x}px, ${note.y}px, ${note.z}px)`;
-                    }
-                    if (updates.pinned !== undefined) {
-                        el.classList.toggle('pinned', note.pinned);
-                        el.querySelector('.pin-icon').classList.toggle('hidden', !note.pinned);
-                    }
-                    if (updates.important !== undefined) {
-                        el.classList.toggle('important', note.important);
-                        el.querySelector('.n-btn.star').classList.toggle('active', note.important);
-                    }
-                }
-                this.save();
-            },
-
-            delete(id) {
-                const el = document.getElementById(`n-${id}`);
-                if(el) {
-                    el.style.transform += ' scale(0)';
-                    el.style.opacity = '0';
-                    setTimeout(() => el.remove(), 300);
-                }
-                STATE.notes = STATE.notes.filter(n => n.id !== id);
-                this.save();
-            },
-
-            save() {
-                localStorage.setItem('fs-notes', JSON.stringify(STATE.notes));
-            },
-            
-            groupNotes() {
-                // Arrange by color: Left (Yellow), Center (Blue), Right (Pink/Purple)
-                STATE.notes.forEach(n => {
-                    let targetX = 0;
-                    if (n.color === 'bg-yellow') targetX = -400;
-                    else if (n.color === 'bg-blue') targetX = 0;
-                    else targetX = 400;
-                    
-                    // Animate to new position
-                    n.x = targetX + (Math.random() - 0.5) * 200;
-                    n.y = (Math.random() - 0.5) * 400;
-                    n.z = (Math.random() * -400); // Flatten Z a bit
-                    
-                    this.update(n.id, { x: n.x, y: n.y, z: n.z });
-                });
-            }
-        };
-
-        // --- 3. INTERACTION MANAGER ---
-        const Interaction = {
-            init() {
-                window.addEventListener('mousemove', e => {
-                    STATE.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-                    STATE.mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
-                    this.handleDrag(e);
-                });
-                
-                window.addEventListener('mouseup', () => {
-                    if (STATE.drag.active) {
-                        const el = document.getElementById(`n-${STATE.drag.id}`);
-                        if(el) el.classList.remove('active-drag');
-                        STATE.drag.active = false;
-                        NoteManager.save(); // Save position after drag
-                    }
-                });
-
-                DOM.world.addEventListener('mousedown', this.onWorldClick.bind(this));
-                DOM.world.addEventListener('click', this.onControlsClick.bind(this));
-                DOM.world.addEventListener('input', this.onInput.bind(this)); // Auto save text
-
-                // UI Buttons
-                document.getElementById('btn-add').onclick = () => NoteManager.add();
-                document.getElementById('btn-group').onclick = () => NoteManager.groupNotes();
-                document.getElementById('btn-focus').onclick = () => this.exitFocus();
-                document.getElementById('btn-timer').onclick = () => Timer.toggle();
-                document.getElementById('btn-lowend').onclick = this.toggleLowEnd.bind(this);
-                document.getElementById('btn-zen').onclick = this.toggleZen.bind(this);
-                document.getElementById('btn-music').onclick = this.toggleMusic.bind(this);
-                
-                // New Features
-                document.getElementById('btn-theme-light').onclick = () => {
-                    this.setTheme(document.body.classList.contains('theme-light') ? 'dark' : 'light');
-                };
-                document.getElementById('btn-theme-sad').onclick = () => {
-                    this.setTheme(document.body.classList.contains('theme-sad') ? 'dark' : 'sad');
-                };
-                document.getElementById('audio-input').addEventListener('change', this.handleAudioUpload);
-            },
-
-            onWorldClick(e) {
-                if (STATE.mode === 'focus') return; // No drag in focus mode
-                
-                const noteEl = e.target.closest('.note');
-                const isControl = e.target.closest('.note-controls') || e.target.tagName === 'BUTTON';
-                
-                if (noteEl && !isControl && noteEl.id !== 'timer-card') {
-                    const id = parseInt(noteEl.dataset.id);
-                    const note = STATE.notes.find(n => n.id === id);
-                    
-                    if (note) {
-                        STATE.drag.active = true;
-                        STATE.drag.id = id;
-                        STATE.drag.startPos = { x: e.clientX, y: e.clientY };
-                        STATE.drag.offset = { x: note.x, y: note.y }; // Store initial logic pos
-                        noteEl.classList.add('active-drag');
-                    }
-                }
-            },
-
-            handleDrag(e) {
-                if (STATE.drag.active) {
-                    const deltaX = (e.clientX - STATE.drag.startPos.x) * 1.5; // Sensitivity
-                    const deltaY = (e.clientY - STATE.drag.startPos.y) * 1.5;
-                    
-                    const note = STATE.notes.find(n => n.id === STATE.drag.id);
-                    if(note) {
-                        note.x = STATE.drag.offset.x + deltaX;
-                        note.y = STATE.drag.offset.y + deltaY;
-                        
-                        // Direct update for smoothness
-                        const el = document.getElementById(`n-${STATE.drag.id}`);
-                        el.style.transform = `translate3d(${note.x}px, ${note.y}px, ${note.z}px)`;
-                    }
-                }
-            },
-
-            onControlsClick(e) {
-                const btn = e.target.closest('.n-btn');
-                if (!btn) return;
-                
-                const noteEl = e.target.closest('.note');
-                const id = parseInt(noteEl.dataset.id);
-                
-                if (btn.classList.contains('delete')) NoteManager.delete(id);
-                if (btn.classList.contains('star')) {
-                    const note = STATE.notes.find(n => n.id === id);
-                    NoteManager.update(id, { important: !note.important });
-                }
-                if (btn.classList.contains('focus')) this.enterFocus(id);
-            },
-
-            // --- THEME MANAGER ---
-            setTheme(mode) {
-                document.body.classList.remove('theme-light', 'theme-sad');
-                
-                if (mode === 'light') {
-                    document.body.classList.add('theme-light');
-                    if(ThreeApp.scene) ThreeApp.scene.fog.color.setHex(0xf0f9ff);
-                } else if (mode === 'sad') {
-                    document.body.classList.add('theme-sad');
-                    if(ThreeApp.scene) ThreeApp.scene.fog.color.setHex(0x050505);
-                    this.createRain();
-                } else {
-                    // Default Dark
-                    if(ThreeApp.scene) ThreeApp.scene.fog.color.setHex(0x0f172a);
-                }
-            },
-
-            createRain() {
-                const container = document.getElementById('rain-container');
-                if(container.childElementCount > 0) return; // Already created
-                
-                for(let i=0; i<50; i++) {
-                    const drop = document.createElement('div');
-                    drop.className = 'rain-drop';
-                    drop.style.left = Math.random() * 100 + 'vw';
-                    drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
-                    drop.style.animationDelay = Math.random() * 2 + 's';
-                    container.appendChild(drop);
-                }
-            },
-
-            handleAudioUpload(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    DOM.audio.src = url;
-                    DOM.audio.play();
-                    document.getElementById('btn-music').style.color = '#f472b6';
-                    document.getElementById('btn-music').innerHTML = '🎼';
-                    alert(`Đang phát: ${file.name}`);
-                }
-            },
-            
-            onInput(e) {
-                if(e.target.tagName === 'TEXTAREA') {
-                    const id = parseInt(e.target.closest('.note').dataset.id);
-                    const note = STATE.notes.find(n => n.id === id);
-                    if(note) {
-                        note.content = e.target.value;
-                        NoteManager.save();
-                    }
-                }
-            },
-
-            enterFocus(id) {
-                STATE.mode = 'focus';
-                STATE.focusedNoteId = id;
-                
-                const allNotes = document.querySelectorAll('.note');
-                allNotes.forEach(el => {
-                    if (parseInt(el.dataset.id) === id) {
-                        el.classList.add('focused');
-                    } else {
-                        el.classList.add('blurred');
-                    }
-                });
-                
-                document.getElementById('btn-focus').style.background = '#0ea5e9'; // Highlight UI
-            },
-
-            exitFocus() {
-                STATE.mode = 'orbit';
-                STATE.focusedNoteId = null;
-                
-                const allNotes = document.querySelectorAll('.note');
-                allNotes.forEach(el => {
-                    el.classList.remove('focused', 'blurred');
-                });
-                
-                document.getElementById('btn-focus').style.background = '';
-            },
-            
-            toggleLowEnd() {
-                STATE.isLowEnd = !STATE.isLowEnd;
-                document.body.classList.toggle('low-end', STATE.isLowEnd);
-                const btn = document.getElementById('btn-lowend');
-                btn.style.color = STATE.isLowEnd ? '#eab308' : 'white';
-                if(STATE.isLowEnd) alert("Đã bật chế độ máy yếu: Tắt sao nền, bóng đổ và animation.");
-            },
-            
-            toggleZen() {
-                STATE.isZen = !STATE.isZen;
-                document.body.classList.toggle('zen', STATE.isZen);
-            },
-            
-            toggleMusic() {
-                if (DOM.audio.paused) {
-                    DOM.audio.play().then(() => {
-                        document.getElementById('btn-music').style.color = '#f472b6';
-                    }).catch(err => {
-                        console.log(err);
-                        alert("Trình duyệt chặn tự phát nhạc. Vui lòng click lại lần nữa!");
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Reset all others
+                    document.querySelectorAll('.revealed-content').forEach(el => {
+                        el.style.opacity = '0';
                     });
-                } else {
-                    DOM.audio.pause();
-                    document.getElementById('btn-music').style.color = 'white';
-                }
-            }
-        };
 
-        // --- 4. TIMER ---
-        const Timer = {
-            toggle() {
-                if (DOM.timerCard.style.display === 'flex') {
-                    DOM.timerCard.style.display = 'none';
-                } else {
-                    DOM.timerCard.style.display = 'flex';
-                    // Reset position to center
-                    DOM.timerCard.style.transform = 'translate3d(0,0,100px)';
-                }
-            },
-            start() {
-                if (STATE.timer.interval) return;
-                STATE.timer.active = true;
-                STATE.timer.interval = setInterval(() => {
-                    STATE.timer.time--;
-                    this.updateDisplay();
-                    if (STATE.timer.time <= 0) {
-                        this.stop();
-                        alert("Hết giờ học! Nghỉ ngơi xíu nhé 🌿");
-                    }
-                }, 1000);
-            },
-            stop() {
-                clearInterval(STATE.timer.interval);
-                STATE.timer.interval = null;
-                STATE.timer.active = false;
-            },
-            reset() {
-                this.stop();
-                STATE.timer.time = 25 * 60;
-                this.updateDisplay();
-            },
-            updateDisplay() {
-                const m = Math.floor(STATE.timer.time / 60).toString().padStart(2, '0');
-                const s = (STATE.timer.time % 60).toString().padStart(2, '0');
-                DOM.timerDisplay.textContent = `${m}:${s}`;
-            }
-        };
-        
-        document.getElementById('timer-start').onclick = () => Timer.start();
-        document.getElementById('timer-reset').onclick = () => Timer.reset();
+                    // Reveal this one
+                    const content = this.querySelector('.revealed-content');
+                    content.style.opacity = '1';
 
-        // --- 5. THREE.JS BACKGROUND ---
-        const ThreeApp = {
-            renderer: null, scene: null, camera: null, stars: null,
-            init() {
-                const canvas = document.getElementById('bg-canvas');
-                this.scene = new THREE.Scene();
-                this.scene.fog = new THREE.FogExp2(0x0f172a, 0.001);
-                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-                this.camera.position.z = 100;
-
-                this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.renderer.setPixelRatio(CONFIG.maxPixelRatio);
-
-                // Create Stars
-                const geo = new THREE.BufferGeometry();
-                const pos = [];
-                for(let i=0; i<2000; i++) {
-                    pos.push((Math.random()-0.5)*1000, (Math.random()-0.5)*1000, (Math.random()-0.5)*1000);
-                }
-                geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-                
-                // Optimized Material
-                const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.8 });
-                this.stars = new THREE.Points(geo, mat);
-                this.scene.add(this.stars);
-
-                window.addEventListener('resize', () => {
-                    this.camera.aspect = window.innerWidth/window.innerHeight;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    // Show meaning
+                    const mean = this.getAttribute('data-mean');
+                    meaningBox.style.opacity = '0';
+                    setTimeout(() => {
+                        meaningBox.innerText = `"${mean}"`;
+                        meaningBox.style.opacity = '1';
+                    }, 300);
                 });
-            },
-            render() {
-                if(this.stars) {
-                    this.stars.rotation.y += 0.0002;
-                    this.stars.rotation.x += 0.0001;
-                }
-                this.renderer.render(this.scene, this.camera);
-            }
-        };
+            });
 
-        // --- INIT ---
-        window.onload = () => {
-            ThreeApp.init();
-            NoteManager.init();
-            Interaction.init();
+            // --- 3. LANTERN CANVAS ENGINE ---
+            const canvas = document.getElementById('lantern-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let lanterns = [];
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Lantern {
+                constructor(x, y, isUser = false) {
+                    this.x = x || Math.random() * width;
+                    this.y = y || height + 100;
+                    this.size = Math.random() * 15 + 10; // Base size
+                    this.speedY = Math.random() * 0.5 + 0.2;
+                    this.sway = Math.random() * 0.5;
+                    this.swaySpeed = Math.random() * 0.02;
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.color = '#FFA500'; // Orange/Gold
+                    this.opacity = 0;
+                    this.maxOpacity = Math.random() * 0.5 + 0.3;
+                    this.isUser = isUser; // Larger if user submitted
+                    if(isUser) {
+                        this.size = 30;
+                        this.speedY = 1;
+                        this.maxOpacity = 1;
+                        this.color = '#FF4500'; // Red/Orange
+                    }
+                }
+
+                update() {
+                    this.y -= this.speedY;
+                    this.angle += this.swaySpeed;
+                    this.x += Math.sin(this.angle) * this.sway;
+
+                    // Fade in
+                    if (this.opacity < this.maxOpacity && this.y > height * 0.8) {
+                        this.opacity += 0.01;
+                    }
+                    // Fade out at top
+                    if (this.y < height * 0.2) {
+                        this.opacity -= 0.005;
+                    }
+
+                    // Reset if background lantern
+                    if (this.y < -50 && !this.isUser) {
+                        this.y = height + 50;
+                        this.opacity = 0;
+                    }
+                }
+
+                draw() {
+                    ctx.globalAlpha = Math.max(0, this.opacity);
+                    // Draw Glow
+                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
+                    gradient.addColorStop(0, this.color);
+                    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Draw Lantern Body (Rectangle)
+                    ctx.fillStyle = this.isUser ? '#D32F2F' : '#FF8C00';
+                    ctx.fillRect(this.x - this.size/2, this.y - this.size/1.5, this.size, this.size * 1.5);
+                    
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            // Init background lanterns
+            for(let i=0; i<30; i++) {
+                lanterns.push(new Lantern());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                
+                lanterns.forEach((l, index) => {
+                    l.update();
+                    l.draw();
+                    // Remove user lanterns if off screen
+                    if(l.isUser && l.y < -50) {
+                        lanterns.splice(index, 1);
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
             animate();
+
+            // --- 4. THẢ ĐÈN INTERACTION ---
+            const releaseBtn = document.getElementById('release-btn');
+            const wishInput = document.getElementById('wish-input');
+
+            releaseBtn.addEventListener('click', () => {
+                const text = wishInput.value.trim();
+                if(text) {
+                    // Spawn user lantern
+                    const rect = releaseBtn.getBoundingClientRect();
+                    const l = new Lantern(rect.left + rect.width/2, rect.top, true);
+                    lanterns.push(l);
+                    
+                    // Clear input
+                    wishInput.value = '';
+                    wishInput.placeholder = "Điều ước đã được gửi đi...";
+                    
+                    // Button Feedback
+                    const originalText = releaseBtn.innerText;
+                    releaseBtn.innerText = "Đã Thả";
+                    releaseBtn.classList.add('bg-green-700');
+                    setTimeout(() => {
+                        releaseBtn.innerText = originalText;
+                        releaseBtn.classList.remove('bg-green-700');
+                    }, 2000);
+                }
+            });
+
+            // --- 5. SCROLL COLOR CHANGE (Storytelling) ---
+            const sections = document.querySelectorAll('section, header');
+            const body = document.body;
             
-            // Set initial volume
-            DOM.audio.volume = 0.5;
-        };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.id === 'lantern-section') {
+                           // Night mode
+                           // canvas is mostly visible here
+                        } 
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(s => observer.observe(s));
+
+            // --- 6. DYNAMIC WISH GENERATOR (MASCOT) ---
+            const mascotAvatar = document.getElementById('mascot-avatar');
+            const mascotBubble = document.getElementById('mascot-bubble');
+            const bubbleContent = document.getElementById('wish-text');
+            const bubbleActions = document.getElementById('bubble-actions');
+            const closeBubbleBtn = document.getElementById('close-bubble');
+            const wishBtns = document.querySelectorAll('.wish-btn');
+
+            let isBubbleOpen = false;
+            let isTyping = false;
+
+            // --- NEW MASCOT LOGIC (Cheeky/Cà Khịa) ---
+            let clickCount = 0;
+
+            const mascotData = {
+                openings: [
+                    "Xuân tới rồi,", "Năm mới sang,", "Đầu năm nói nhẹ thôi,", 
+                    "Tết đến cửa rồi,", "Nghe này,", "Giữa không khí rộn ràng,"
+                ],
+                serious: [
+                    "mong bạn bình an", "chúc bạn vững lòng", "chỉ mong năm nay đủ đầy", 
+                    "hy vọng mọi chuyện hanh thông", "cầu cho bạn chân cứng đá mềm", 
+                    "mong nụ cười luôn ở lại", "chúc tâm hồn bạn nở hoa"
+                ],
+                gentleEndings: [
+                    "để năm tháng trôi qua thật êm.", "như cách mùa xuân vẫn về.", 
+                    "giữa dòng đời vội vã.", "để đón nhận mọi điều lành.", 
+                    "vẹn tròn và như ý."
+                ],
+                // The "Twist" (Cầu nối cà khịa)
+                bridges: [
+                    "cơ mà nè,", "có điều nhỏ này,", "tiện nhắc luôn,", 
+                    "nhưng mà...", "chỉ là...", "mà nói nhỏ nghe,"
+                ],
+                // The Tease (Cà khịa duyên dáng)
+                teases: [
+                    "đừng để Tết sau vẫn phải giải thích 'chưa tới duyên' nha.",
+                    "năm nay nhớ mở lòng, đừng chỉ mở app suốt nữa.",
+                    "đừng bận mạnh mẽ quá rồi quên cách rung động.",
+                    "chứ xuân nào admin cũng chúc hoài, admin cũng ngại giùm.",
+                    "ế lâu quá người ta tưởng mình khó tính đó.",
+                    "đừng kén quá, cá nào cũng là cá mà.",
+                    "nhớ là lì xì mình nhận, nhưng tình duyên mình cũng phải nhận nha."
+                ]
+            };
+
+            const generateWish = (type) => {
+                clickCount++;
+                const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+                
+                // Probability of Teasing: Base 30%, increases by 5% per click, capped at 80%
+                let teaseChance = 0.3 + (clickCount * 0.05);
+                if (type === 'solo') teaseChance += 0.3; // Higher chance if they click "Một Mình"
+                if (teaseChance > 0.8) teaseChance = 0.8;
+
+                const isTease = Math.random() < teaseChance;
+
+                // Part 1: Serious Base
+                let wish = `${rand(mascotData.openings)} ${rand(mascotData.serious)}`;
+
+                if (isTease) {
+                    // Part 2: Twist & Tease
+                    // Add special delimiter '|' for pause effect
+                    wish += `. ${rand(mascotData.bridges)} | ${rand(mascotData.teases)}`;
+                    
+                    // Trigger Giggle Animation
+                    mascotAvatar.classList.add('animate-bounce');
+                    setTimeout(() => mascotAvatar.classList.remove('animate-bounce'), 1000);
+                } else {
+                    // Part 2: Gentle Ending
+                    wish += ` ${rand(mascotData.gentleEndings)}`;
+                }
+
+                return wish;
+            };
+
+            const typeWriter = (text, element) => {
+                isTyping = true;
+                element.innerHTML = '';
+                let i = 0;
+                let speed = 40; 
+
+                function type() {
+                    if (i < text.length) {
+                        const char = text.charAt(i);
+                        
+                        // Handle Pause Delimiter
+                        if (char === '|') {
+                            i++;
+                            setTimeout(type, 800); // Long pause for dramatic effect
+                            return;
+                        }
+
+                        element.innerHTML += char;
+                        i++;
+                        setTimeout(type, speed);
+                    } else {
+                        isTyping = false;
+                        bubbleActions.style.opacity = '1';
+                        bubbleActions.style.pointerEvents = 'auto';
+                    }
+                }
+                type();
+            };
+
+            const toggleBubble = (show) => {
+                if (show) {
+                    mascotBubble.classList.remove('opacity-0', 'scale-90', 'translate-y-4');
+                    isBubbleOpen = true;
+                    // Initial greeting if empty
+                    if(bubbleContent.innerHTML === '') {
+                        bubbleActions.style.opacity = '0'; // Hide buttons while typing
+                        bubbleActions.style.pointerEvents = 'none';
+                        typeWriter("Chào bạn! Tết này bạn mong chờ điều gì? Hãy chọn một lời nhắn...", bubbleContent);
+                    }
+                } else {
+                    mascotBubble.classList.add('opacity-0', 'scale-90', 'translate-y-4');
+                    isBubbleOpen = false;
+                }
+            };
+
+            // Event Listeners
+            mascotAvatar.addEventListener('click', () => {
+                toggleBubble(!isBubbleOpen);
+            });
+
+            closeBubbleBtn.addEventListener('click', () => {
+                toggleBubble(false);
+            });
+
+            wishBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if(isTyping) return;
+                    
+                    const type = e.target.getAttribute('data-type');
+                    
+                    // Visual feedback
+                    bubbleActions.style.opacity = '0';
+                    bubbleActions.style.pointerEvents = 'none';
+                    
+                    // Generate and Type
+                    const wish = generateWish(type);
+                    setTimeout(() => {
+                        typeWriter(wish, bubbleContent);
+                    }, 300);
+                });
+            });
+
+        });
     </script>
 </body>
 </html>
